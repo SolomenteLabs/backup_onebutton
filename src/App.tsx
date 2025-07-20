@@ -1,67 +1,17 @@
-import { SigningStargateClient } from "@cosmjs/stargate";
-import { createDefaultRegistry } from "coreum-js";
-import { GasPrice } from "@cosmjs/stargate";
+import React from "react";
+import SoloPassMint from "./SoloPassMint";
 
-const handleMint = async () => {
-  try {
-    const chainId = "coreum-testnet-1";
-    const rpc = "https://full-node.testnet-1.coreum.dev:26657";
-
-    // Ensure Keplr extension is available
-    if (!window.keplr) {
-      alert("Keplr extension not found.");
-      return;
-    }
-
-    // Enable the chain in Keplr (this triggers the popup)
-    await window.keplr.enable(chainId);
-
-    // Get signer from Keplr
-    const offlineSigner = window.getOfflineSigner!(chainId);
-    const accounts = await offlineSigner.getAccounts();
-    const address = accounts[0].address;
-
-    // Create protobuf-compatible client
-    const registry = createDefaultRegistry();
-    const gasPrice = GasPrice.fromString("0.05utestcore");
-
-    const client = await SigningStargateClient.connectWithSigner(rpc, offlineSigner, {
-      registry,
-      gasPrice,
-    });
-
-    // Compose message
-    const msg = {
-      typeUrl: "/coreum.asset.ft.v1.MsgMint",
-      value: {
-        sender: address,
-        recipient: address,
-        coin: {
-          denom: "usolopass", // replace this with your token denom
-          amount: "1", // Mint 1 unit
-        },
-      },
-    };
-
-    const fee = {
-      amount: [{ denom: "utestcore", amount: "2500" }],
-      gas: "200000",
-    };
-
-    // Sign & broadcast
-    const result = await client.signAndBroadcast(address, [msg], fee);
-
-    if (result.code === 0) {
-      alert("✅ Mint successful!");
-    } else {
-      console.error(result);
-      alert(`❌ Transaction failed: ${result.rawLog}`);
-    }
-  } catch (error) {
-    console.error("Minting failed", error);
-    alert("⚠️ Error during mint.");
-  }
+const App = () => {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-white to-slate-100">
+      <div className="rounded-2xl border border-gray-300 bg-white px-12 py-10 text-center shadow-md">
+        <img src="/solopass-logo.png" alt="SoloPass" className="mx-auto mb-8 w-48" />
+        <h1 className="mb-4 text-2xl font-bold">Mint Your 30-Day SoloPass</h1>
+        <p className="mb-6 text-gray-600">Connect Keplr & click to mint a time-limited Smart Token</p>
+        <SoloPassMint />
+      </div>
+    </div>
+  );
 };
-
 
 export default App;
