@@ -23,13 +23,14 @@ export function App() {
       assetLists={[]}
       wallets={wallets}
     >
-      <div className="min-h-screen flex flex-col justify-center items-center">
-        <h1 className="text-4xl font-bold mb-4">Backup OneButton</h1>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow">
-          Mint Token
-        </button>
-      </div>
+      <main className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">Backup OneButton Demo</h1>
+          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow">
+            Mint Smart Token
+          </button>
+        </div>
+      </main>
     </ChainProvider>
   );
 }
-
