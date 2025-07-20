@@ -16,6 +16,7 @@
     "@keplr-wallet/types": "^0.12.252",
     "chain-registry": "^2.0.27",
     "coreum-js": "^2.17.4",
+    "long": "^5.3.2",
     "protobufjs": "^7.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
