@@ -1,14 +1,15 @@
-// src/App.tsx
-import React, { useEffect, useState } from "react";
-import { ChainProvider } from "@cosmos-kit/react";
+import React from "react";
+import {
+  ChainProvider,
+  WalletSection,
+  useWallet,
+} from "@cosmos-kit/react";
 import { wallets as keplrWallets } from "@cosmos-kit/keplr";
 import { SigningStargateClient } from "@cosmjs/stargate";
-import { chains as registryChains } from "chain-registry";
-import { assets } from "chain-registry";
-import { useChain } from "@cosmos-kit/react";
+import { GasPrice } from "@cosmjs/stargate";
 
-export const App = () => {
-  const coreumTestnet = {
+const chains = [
+  {
     chain_name: "coreum-testnet",
     chain_id: "coreum-testnet-1",
     apis: {
@@ -18,28 +19,34 @@ export const App = () => {
     pretty_name: "Coreum Testnet",
     bech32_prefix: "testcore",
     slip44: 118,
-  };
+  },
+];
 
-  const { connect, openView, isWalletConnected, address, getOfflineSigner } = useChain("coreum-testnet");
+const AppInner = () => {
+  const { address, getOfflineSigner, connect, isWalletConnected } = useWallet();
 
-  const handleMint = async () => {
-    if (!isWalletConnected) await connect();
+  const mintToken = async () => {
+    if (!address) {
+      alert("Connect wallet first");
+      return;
+    }
+
+    const rpc = chains[0].apis.rpc[0].address;
     const signer = await getOfflineSigner();
-    const client = await SigningStargateClient.connectWithSigner(
-      coreumTestnet.apis.rpc[0].address,
-      signer
-    );
+    const client = await SigningStargateClient.connectWithSigner(rpc, signer, {
+      gasPrice: GasPrice.fromString("0.0625utestcore"),
+    });
 
-    const tx = {
+    const msg = {
       typeUrl: "/coreum.asset.ft.v1.MsgIssue",
       value: {
         issuer: address,
-        symbol: "DEMO",
-        subunit: "demo",
+        symbol: "DEMOTKN",
+        subunit: "udemotkn",
         precision: 6,
         initialAmount: "1000000",
-        description: "Demo Token",
-        features: ["burning", "minting"],
+        description: "Demo token from onebutton",
+        features: ["burning", "freezing"],
       },
     };
 
@@ -48,25 +55,42 @@ export const App = () => {
       gas: "200000",
     };
 
-    const result = await client.signAndBroadcast(address, [tx], fee);
-    console.log("✅ Mint result:", result);
+    const result = await client.signAndBroadcast(address, [msg], fee);
+    alert(`✅ Mint tx hash: ${result.transactionHash}`);
   };
 
   return (
-    <ChainProvider
-      chains={[coreumTestnet]}
-      assetLists={[]}
-      wallets={keplrWallets}
-      walletConnectOptions={{ signClient: { projectId: "demo" } }}
-    >
-      <main style={{ padding: "2rem", fontFamily: "sans-serif", textAlign: "center" }}>
-        <h1>🔨 Coreum Testnet Minter</h1>
-        <p>{address ? `Connected: ${address}` : "Not connected"}</p>
-        <button onClick={handleMint} style={{ padding: "1rem", fontSize: "1rem" }}>
-          🚀 Mint Smart Token
-        </button>
-      </main>
-    </ChainProvider>
+    <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>
+      <h1>🚀 OneButton Demo</h1>
+      <p>Mint a test smart token on Coreum testnet</p>
+      <WalletSection />
+      <button
+        onClick={mintToken}
+        style={{
+          marginTop: "1rem",
+          padding: "0.75rem 1.5rem",
+          fontSize: "1rem",
+          cursor: "pointer",
+        }}
+      >
+        🪙 Mint Token
+      </button>
+    </div>
   );
 };
 
+export const App = () => (
+  <ChainProvider
+    chains={chains}
+    assetLists={[]}
+    wallets={keplrWallets}
+    signerOptions={{
+      signingStargate: () => ({
+        gasPrice: GasPrice.fromString("0.0625utestcore"),
+      }),
+    }}
+    wrappedWithChakraProvider={false}
+  >
+    <AppInner />
+  </ChainProvider>
+);
