@@ -1,81 +1,91 @@
 import React from "react";
 import { useChain } from "@cosmos-kit/react";
 import { SigningStargateClient } from "@cosmjs/stargate";
-import { MsgIssue } from "coreum-js/dist/coreum/token/v1/tx";
+import { MsgMint } from "coreum-js/lib/esm/coreum/token/v1/tx";
+import { SmartTokenProperties } from "coreum-js/lib/esm/coreum/token/v1/token";
+import { Registry } from "@cosmjs/proto-signing";
+import { EncodeObject } from "@cosmjs/proto-signing";
+import logo from "./assets/accesslayer-logo.png";
 
-export default function App() {
-  const { connect, connected, address, getOfflineSigner, chain } = useChain("coreum");
+const App: React.FC = () => {
+  const { connect, isWalletConnected, address, getOfflineSigner, chain } = useChain("coreum");
 
   const handleMint = async () => {
     try {
-      if (!connected) await connect();
-
-      const signer = await getOfflineSigner();
-      const client = await SigningStargateClient.connectWithSigner(chain.rpc, signer);
+      if (!isWalletConnected || !address || !getOfflineSigner) {
+        await connect();
+        return;
+      }
 
       const now = Math.floor(Date.now() / 1000);
       const expires = now + 30 * 24 * 60 * 60;
 
-      const msg: MsgIssue = {
-        issuer: address!,
-        symbol: "SOLOPASS",
+      const msg: MsgMint = {
+        sender: address,
+        recipient: address,
+        amount: "1",
+        denom: "usolopass",
         subunit: "usolopass",
-        precision: 6,
-        initialAmount: "1",
-        description: "30 Day SoloPass Token",
-        features: ["burning", "freezing", "soulbound", "expiry"],
-        burnRate: "0.0",
-        sendCommissionRate: "0.0",
-        uri: "",
-        uriHash: "",
-        frozen: true,
-        soulbound: true,
-        whitelistedLimit: [],
-        subunitToUnitConversion: 1_000_000,
-        dateExpiry: BigInt(expires),
+        decimals: 6,
+        features: ["burning", "freezing", "soulbound"],
+        properties: {
+          burnable: true,
+          frozen: true,
+          soulbound: true,
+          expiry: BigInt(expires),
+        } as SmartTokenProperties,
       };
+
+      const registry = new Registry();
+      registry.register("/coreum.token.v1.MsgMint", MsgMint);
+
+      const client = await SigningStargateClient.connectWithSigner(
+        chain.apis.rpc[0].address,
+        await getOfflineSigner(),
+        { registry }
+      );
 
       const fee = {
         amount: [{ denom: "utestcore", amount: "5000" }],
         gas: "200000",
       };
 
-      const result = await client.signAndBroadcast(address!, [
-        {
-          typeUrl: "/coreum.token.v1.MsgIssue",
-          value: msg,
-        },
-      ], fee);
-
-    
+      const result = await client.signAndBroadcast(address, [msg as EncodeObject], fee);
       if (result.code === 0) {
-      alert("✅ Token minted successfully!");
+        alert("✅ Mint successful!");
       } else {
-      console.error("❌ Mint failed:", result);
-      alert(`❌ Mint failed. Code ${result.code}: ${result.rawLog}`);
+        alert("⚠️ Mint failed: " + result.rawLog);
       }
-
-
-
-
-
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       alert("⚠️ Error during mint.");
     }
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", justifyContent: "center", alignItems: "center" }}>
+    <div style={{
+      backgroundColor: "#ffffff",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "Arial, sans-serif",
+    }}>
+      <img src={logo} alt="AccessLayer Logo" style={{ width: 100, marginBottom: 20 }} />
+      <h1 style={{ fontSize: "1.8rem", margin: 0 }}>AccessLayer</h1>
+      <p style={{ fontSize: "1rem", color: "#444", marginBottom: "40px" }}>
+        Tokenized Infrastructure. Elegant by Design. Built on Coreum.
+      </p>
       <button
         onClick={handleMint}
         style={{
-          backgroundColor: "#1f2937",
+          backgroundColor: "#111827",
           color: "white",
-          padding: "16px 32px",
-          fontSize: "18px",
-          borderRadius: "12px",
+          fontSize: "1rem",
+          padding: "12px 24px",
           border: "none",
+          borderRadius: "8px",
           cursor: "pointer",
         }}
       >
@@ -83,5 +93,6 @@ export default function App() {
       </button>
     </div>
   );
-}
+};
 
+export default App;
