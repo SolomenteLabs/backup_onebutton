@@ -1,0 +1,39 @@
+{
+  "name": "onebutton",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@cosmjs/amino": "^0.34.0",
+    "@cosmjs/proto-signing": "^0.31.0",
+    "@cosmjs/stargate": "^0.31.0",
+    "@cosmos-kit/core": "^2.16.1",
+    "@cosmos-kit/keplr": "^2.15.1",
+    "@cosmos-kit/react": "^2.22.1",
+    "@keplr-wallet/types": "^0.12.252",
+    "chain-registry": "^2.0.27",
+    "coreum-js": "^2.17.4",
+    "protobufjs": "^7.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "@vitejs/plugin-react": "^4.0.3",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "rollup-plugin-node-polyfills": "^0.2.1",
+    "ts-proto": "^2.7.5",
+    "typescript": "^5.3.3",
+    "vite": "^4.5.0",
+    "vite-plugin-node-polyfills": "^0.24.0",
+    "vite-plugin-node-stdlib-browser": "^0.2.1"
+  }
+}
