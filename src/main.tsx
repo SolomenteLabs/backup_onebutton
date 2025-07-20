@@ -1,66 +1,26 @@
-import { useChain } from "@cosmos-kit/react";
-import { SigningStargateClient } from "@cosmjs/stargate";
-import { MsgMint } from "coreum-js/pkg/coreum/asset/ft/v1/tx";
-import { coins } from "@cosmjs/stargate";
 import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { ChainProvider } from "@cosmos-kit/react";
+import { wallets } from "@cosmos-kit/keplr";
 
-const App = () => {
-  const { connect, disconnect, openView, isWalletConnected, address, getOfflineSigner } = useChain("coreum");
+const coreumTestnet = [
+  {
+    chain_name: "coreum",
+    chain_id: "coreum-testnet-1",
+    apis: {
+      rpc: [{ address: "https://full-node.testnet-1.coreum.dev:26657" }],
+      rest: [{ address: "https://full-node.testnet-1.coreum.dev:1317" }],
+    },
+    pretty_name: "Coreum Testnet",
+    bech32_prefix: "core",
+  },
+];
 
-  const handleMint = async () => {
-    if (!address) return alert("Wallet not connected.");
-
-    const signer = await getOfflineSigner();
-    const client = await SigningStargateClient.connectWithSigner(
-      "https://full-node.testnet-1.coreum.dev:26657",
-      signer
-    );
-
-    const msg: MsgMint = {
-      sender: address,
-      amount: {
-        denom: "utestcore", // change if minting a custom smart token
-        amount: "1000000", // 1 token = 1000000 u (6 decimals)
-      },
-    };
-
-    try {
-      const fee = {
-        amount: coins(25000, "utestcore"),
-        gas: "200000",
-      };
-
-      const result = await client.signAndBroadcast(address, [
-        {
-          typeUrl: "/coreum.asset.ft.v1.MsgMint",
-          value: msg,
-        },
-      ], fee);
-
-      console.log("Mint Tx result:", result);
-      alert("Mint transaction sent!");
-    } catch (err) {
-      console.error("Mint error:", err);
-      alert("Mint failed. See console.");
-    }
-  };
-
-  return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Coreum Mint Demo</h1>
-      {!isWalletConnected ? (
-        <button onClick={connect}>Connect Wallet</button>
-      ) : (
-        <>
-          <p>Connected: {address}</p>
-          <button onClick={disconnect}>Disconnect</button>
-          <br /><br />
-          <button onClick={handleMint}>Mint Token</button>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default App;
-
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ChainProvider chains={coreumTestnet} assetLists={[]} wallets={wallets}>
+      <App />
+    </ChainProvider>
+  </React.StrictMode>
+);
