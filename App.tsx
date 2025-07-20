@@ -1,7 +1,7 @@
 import React from "react";
 import { useChain } from "@cosmos-kit/react";
 import { SigningStargateClient, GasPrice } from "@cosmjs/stargate";
-import { MsgMintSmartToken, SmartTokenProperties } from "coreum-js/dist/coreum/token/v1/tx";
+import { MsgMintSmartToken, SmartTokenProperties } from "coreum-js";
 import { Registry } from "@cosmjs/proto-signing";
 import Long from "long";
 
