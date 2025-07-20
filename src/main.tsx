@@ -56,3 +56,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <App />
   </ChainProvider>
 );
+
+// ✅ Defensive safety checks
+if (!chains || !Array.isArray(chains)) {
+  throw new Error("❌ [Fatal] 'chains' is undefined or not an array. Check your chain-registry import.");
+}
+
+console.log("🔍 Chains loaded:", chains?.map(c => c.chain_name));
+// ✅ Defensive safety checks
+if (!chains || !Array.isArray(chains)) {
+  throw new Error("❌ [Fatal] 'chains' is undefined or not an array. Check your chain-registry import.");
+}
+
+console.log("🔍 Chains loaded:", chains?.map(c => c.chain_name));
