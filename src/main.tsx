@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ChainProvider } from "@cosmos-kit/react";
-import { getKeplrFromExtension } from "@cosmos-kit/keplr";
+import { keplrWallet } from "@cosmos-kit/keplr";
 
-const wallets = [getKeplrFromExtension()];
+const wallets = [keplrWallet];
 
 const coreumTestnet = [
   {
