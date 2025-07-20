@@ -1,77 +1,77 @@
-import React from "react";
+import React from "react"
+import { useChain } from "@cosmos-kit/react"
+import { SigningStargateClient, GasPrice } from "@cosmjs/stargate"
+import { MsgMintSmartToken, SmartTokenProperties } from "coreum-js/dist/coreum/token/v1/tx"
+import { Registry } from "@cosmjs/proto-signing"
+import Long from "long"
 
-function App() {
+const App = () => {
+  const { address, connect, isWalletConnected } = useChain("coreum")
+
+  const handleMint = async () => {
+    try {
+      const chainId = "coreum-testnet-1"
+      const rpcEndpoint = "https://full-node.testnet-1.coreum.dev:26657"
+      const denom = "utestcore"
+      const fee = {
+        amount: [{ denom, amount: "5000" }],
+        gas: "200000",
+      }
+
+      const offlineSigner = window.getOfflineSigner(chainId)
+      const accounts = await offlineSigner.getAccounts()
+
+      const now = Math.floor(Date.now() / 1000)
+      const expires = now + 30 * 24 * 60 * 60
+
+      const props: SmartTokenProperties = {
+        burnable: true,
+        frozen: true,
+        whitelistedLimit: false,
+        userIssuable: false,
+        isSoulbound: true,
+        dateExpires: {
+          seconds: Long.fromNumber(expires),
+          nanos: 0,
+        },
+      }
+
+      const msg: MsgMintSmartToken = {
+        sender: accounts[0].address,
+        amount: {
+          denom: denom,
+          amount: "1",
+        },
+        properties: props,
+      }
+
+      const registry = new Registry()
+      registry.register("/coreum.token.v1.MsgMintSmartToken", MsgMintSmartToken)
+
+      const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, offlineSigner, {
+        registry,
+        gasPrice: GasPrice.fromString("0.025utestcore"),
+      })
+
+      const result = await client.signAndBroadcast(accounts[0].address, [msg], fee)
+
+      if (result.code === 0) {
+        alert("✅ Mint successful! TxHash: " + result.transactionHash)
+      } else {
+        alert("❌ Mint failed: " + result.rawLog)
+      }
+    } catch (err) {
+      console.error(err)
+      alert("❌ Error minting: " + err.message)
+    }
+  }
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        fontFamily: "sans-serif",
-        backgroundColor: "#0a0a0a",
-        color: "#fff",
-      }}
-    >
-      <style>
-        {`
-          @media (max-width: 768px) {
-            body, html, #root {
-              background: black;
-              color: white;
-              height: 100%;
-              margin: 0;
-              overflow: hidden;
-            }
-            .desktop-only {
-              display: none !important;
-            }
-            .mobile-warning {
-              display: flex !important;
-              font-size: 1.2rem;
-              padding: 2rem;
-              text-align: center;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-            }
-          }
-
-          @media (min-width: 769px) {
-            .mobile-warning {
-              display: none !important;
-            }
-            .desktop-only {
-              display: flex !important;
-            }
-          }
-        `}
-      </style>
-
-      <div className="mobile-warning">
-        🚫 This demo is desktop-only. Please visit from a desktop browser with Keplr installed.
-      </div>
-
-      <div className="desktop-only">
-        <h1 style={{ marginBottom: "2rem" }}>✅ Connect and Mint SoloPass</h1>
-        <button
-          style={{
-            fontSize: "1.5rem",
-            padding: "1rem 2rem",
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: "#4e9ef7",
-            color: "white",
-            cursor: "pointer",
-          }}
-          onClick={() => alert("Mint logic goes here")}
-        >
-          Mint SoloPass
-        </button>
-      </div>
+    <div className="App">
+      <h1>✅ Connect and Mint SoloPass</h1>
+      <button onClick={isWalletConnected ? handleMint : connect}>Mint SoloPass</button>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
