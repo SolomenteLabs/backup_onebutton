@@ -63,3 +63,5 @@ const handleMint = async () => {
   }
 };
 
+
+export default App;
