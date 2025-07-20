@@ -47,12 +47,18 @@ export default function App() {
         },
       ], fee);
 
+    
       if (result.code === 0) {
-        alert("✅ Token minted successfully!");
+      alert("✅ Token minted successfully!");
       } else {
-        console.error(result);
-        alert("❌ Mint failed.");
+      console.error("❌ Mint failed:", result);
+      alert(`❌ Mint failed. Code ${result.code}: ${result.rawLog}`);
       }
+
+
+
+
+
     } catch (err) {
       console.error(err);
       alert("⚠️ Error during mint.");
