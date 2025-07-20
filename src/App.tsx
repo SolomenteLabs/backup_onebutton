@@ -1,97 +1,65 @@
-import React from "react";
-import { useChain } from "@cosmos-kit/react";
 import { SigningStargateClient } from "@cosmjs/stargate";
-import { MsgMint, SmartTokenProperties } from "coreum-js";
-import { Registry } from "@cosmjs/proto-signing";
-import { EncodeObject } from "@cosmjs/proto-signing";
-import logo from "../solopass-logo.png";
+import { createDefaultRegistry } from "coreum-js";
+import { GasPrice } from "@cosmjs/stargate";
 
-const App: React.FC = () => {
-  const { connect, isWalletConnected, address, getOfflineSigner, chain } = useChain("coreum");
+const handleMint = async () => {
+  try {
+    const chainId = "coreum-testnet-1";
+    const rpc = "https://full-node.testnet-1.coreum.dev:26657";
 
-  const handleMint = async () => {
-    try {
-      if (!isWalletConnected || !address || !getOfflineSigner) {
-        await connect();
-        return;
-      }
+    // Ensure Keplr extension is available
+    if (!window.keplr) {
+      alert("Keplr extension not found.");
+      return;
+    }
 
-      const now = Math.floor(Date.now() / 1000);
-      const expires = now + 30 * 24 * 60 * 60;
+    // Enable the chain in Keplr (this triggers the popup)
+    await window.keplr.enable(chainId);
 
-      const msg: MsgMint = {
+    // Get signer from Keplr
+    const offlineSigner = window.getOfflineSigner!(chainId);
+    const accounts = await offlineSigner.getAccounts();
+    const address = accounts[0].address;
+
+    // Create protobuf-compatible client
+    const registry = createDefaultRegistry();
+    const gasPrice = GasPrice.fromString("0.05utestcore");
+
+    const client = await SigningStargateClient.connectWithSigner(rpc, offlineSigner, {
+      registry,
+      gasPrice,
+    });
+
+    // Compose message
+    const msg = {
+      typeUrl: "/coreum.asset.ft.v1.MsgMint",
+      value: {
         sender: address,
         recipient: address,
-        amount: "1",
-        denom: "usolopass",
-        subunit: "usolopass",
-        decimals: 6,
-        features: ["burning", "freezing", "soulbound"],
-        properties: {
-          burnable: true,
-          frozen: true,
-          soulbound: true,
-          expiry: BigInt(expires),
-        } as SmartTokenProperties,
-      };
+        coin: {
+          denom: "usolopass", // replace this with your token denom
+          amount: "1", // Mint 1 unit
+        },
+      },
+    };
 
-      const registry = new Registry();
-      registry.register("/coreum.token.v1.MsgMint", MsgMint);
+    const fee = {
+      amount: [{ denom: "utestcore", amount: "2500" }],
+      gas: "200000",
+    };
 
-      const client = await SigningStargateClient.connectWithSigner(
-        chain.apis.rpc[0].address,
-        await getOfflineSigner(),
-        { registry }
-      );
+    // Sign & broadcast
+    const result = await client.signAndBroadcast(address, [msg], fee);
 
-      const fee = {
-        amount: [{ denom: "utestcore", amount: "5000" }],
-        gas: "200000",
-      };
-
-      const result = await client.signAndBroadcast(address, [msg as EncodeObject], fee);
-      if (result.code === 0) {
-        alert("✅ Mint successful!");
-      } else {
-        alert("⚠️ Mint failed: " + result.rawLog);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("⚠️ Error during mint.");
+    if (result.code === 0) {
+      alert("✅ Mint successful!");
+    } else {
+      console.error(result);
+      alert(`❌ Transaction failed: ${result.rawLog}`);
     }
-  };
-
-  return (
-    <div style={{
-      backgroundColor: "#ffffff",
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "Arial, sans-serif",
-    }}>
-      <img src={logo} alt="AccessLayer Logo" style={{ width: 100, marginBottom: 20 }} />
-      <h1 style={{ fontSize: "1.8rem", margin: 0 }}>AccessLayer</h1>
-      <p style={{ fontSize: "1rem", color: "#444", marginBottom: "40px" }}>
-        Tokenized Infrastructure. Elegant by Design. Built on Coreum.
-      </p>
-      <button
-        onClick={handleMint}
-        style={{
-          backgroundColor: "#111827",
-          color: "white",
-          fontSize: "1rem",
-          padding: "12px 24px",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-      >
-        Mint 30 Day SoloPass
-      </button>
-    </div>
-  );
+  } catch (error) {
+    console.error("Minting failed", error);
+    alert("⚠️ Error during mint.");
+  }
 };
 
-export default App;
