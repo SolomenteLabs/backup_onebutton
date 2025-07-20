@@ -2,7 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ChainProvider } from "@cosmos-kit/react";
-import { keplrExtensionInfo } from "@cosmos-kit/keplr";
+import { getKeplrFromExtension } from "@cosmos-kit/keplr";
+
+const wallets = [getKeplrFromExtension()];
 
 const coreumTestnet = [
   {
@@ -16,8 +18,6 @@ const coreumTestnet = [
     bech32_prefix: "core",
   },
 ];
-
-const wallets = [keplrExtensionInfo];
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
