@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ChainProvider,
-  WalletSection,
   useWallet,
 } from "@cosmos-kit/react";
 import { wallets as keplrWallets } from "@cosmos-kit/keplr";
@@ -63,7 +62,6 @@ const AppInner = () => {
     <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>
       <h1>🚀 OneButton Demo</h1>
       <p>Mint a test smart token on Coreum testnet</p>
-      <WalletSection />
       <button
         onClick={mintToken}
         style={{
