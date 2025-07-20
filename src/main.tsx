@@ -2,11 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ChainProvider } from "@cosmos-kit/react";
-import { keplrWallet } from "@cosmos-kit/keplr";
 
-const wallets = [keplrWallet];
-
-const coreumTestnet = [
+const chains = [
   {
     chain_name: "coreum",
     chain_id: "coreum-testnet-1",
@@ -21,7 +18,7 @@ const coreumTestnet = [
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ChainProvider chains={coreumTestnet} assetLists={[]} wallets={wallets}>
+    <ChainProvider chains={chains} assetLists={[]}>
       <App />
     </ChainProvider>
   </React.StrictMode>
