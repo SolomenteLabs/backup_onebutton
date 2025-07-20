@@ -4,7 +4,7 @@ import { SigningStargateClient } from "@cosmjs/stargate";
 import { MsgMint, SmartTokenProperties } from "coreum-js";
 import { Registry } from "@cosmjs/proto-signing";
 import { EncodeObject } from "@cosmjs/proto-signing";
-import logo from "./assets/accesslayer-logo.png";
+import logo from "../solopass-logo.png";
 
 const App: React.FC = () => {
   const { connect, isWalletConnected, address, getOfflineSigner, chain } = useChain("coreum");
