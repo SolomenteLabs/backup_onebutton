@@ -1,8 +1,7 @@
 import React from "react";
 import { useChain } from "@cosmos-kit/react";
 import { SigningStargateClient } from "@cosmjs/stargate";
-import { MsgMint } from "coreum-js/lib/esm/coreum/token/v1/tx";
-import { SmartTokenProperties } from "coreum-js/lib/esm/coreum/token/v1/token";
+import { MsgMint, SmartTokenProperties } from "coreum-js";
 import { Registry } from "@cosmjs/proto-signing";
 import { EncodeObject } from "@cosmjs/proto-signing";
 import logo from "./assets/accesslayer-logo.png";
