@@ -6,7 +6,6 @@ import { wallets } from "@cosmos-kit/keplr";
 import { chains } from "chain-registry";
 
 const coreumTestnet = chains.find((c) => c.chain_name === "coreum-testnet");
-const coreumAssets = assets.find((a) => a.chain_name === "coreum-testnet");
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <ChainProvider
