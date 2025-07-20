@@ -1,8 +1,6 @@
 import { useChain } from '@cosmos-kit/react';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { SigningStargateClient } from '@cosmjs/stargate';
-import { MsgMintSmartToken } from 'coreum-js/wallet-coreum-coreum.types'; // double check this import if error
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function App() {
   const {
@@ -14,8 +12,13 @@ export function App() {
     isWalletConnected,
   } = useChain('coreum-testnet');
 
+  const [txStatus, setTxStatus] = useState<'idle' | 'minting' | 'success' | 'error'>('idle');
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   const handleMint = async () => {
     try {
+      setTxStatus('minting');
       const signer = await getOfflineSigner();
       const client = await SigningStargateClient.connectWithSigner(
         'https://full-node.testnet-coreum.dev:26657',
@@ -27,8 +30,8 @@ export function App() {
         value: {
           sender: address,
           amount: {
-            denom: 'utestcore', // Coreum Testnet native denom
-            amount: '1',        // 1 utestcore
+            denom: 'utestcore',
+            amount: '1',
           },
           coin: {
             denom: 'utestcore',
@@ -45,13 +48,15 @@ export function App() {
 
       const result = await client.signAndBroadcast(address, [msg], fee);
       if (result.code === 0) {
-        alert('✅ Token Minted!');
+        setTxHash(result.transactionHash);
+        setTxStatus('success');
       } else {
-        alert(`❌ Mint failed: ${result.rawLog}`);
+        console.error('Mint error:', result.rawLog);
+        setTxStatus('error');
       }
     } catch (err) {
       console.error(err);
-      alert('❌ Transaction failed');
+      setTxStatus('error');
     }
   };
 
@@ -61,16 +66,42 @@ export function App() {
       <h1 className="text-3xl font-bold mb-2">OneButton Mint</h1>
       <p className="text-gray-400 mb-6">Mint a Coreum Smart Token (Testnet)</p>
 
+      {isMobile && !isWalletConnected && (
+        <p className="text-sm text-yellow-400 mb-4">
+          ⚠️ On mobile? Be sure to use WalletConnect or open this in Keplr browser.
+        </p>
+      )}
+
       {isWalletConnected ? (
         <>
-          <p className="mb-2">Wallet:</p>
-          <p className="mb-4 text-sm text-green-400">{address}</p>
+          <p className="mb-2 text-green-400 text-xs">Connected as:</p>
+          <p className="mb-4 text-sm break-all">{address}</p>
+
           <button
-            className="bg-green-600 hover:bg-green-500 px-6 py-2 rounded-xl text-white font-bold"
+            className="bg-green-600 hover:bg-green-500 px-6 py-2 rounded-xl text-white font-bold disabled:opacity-50"
             onClick={handleMint}
+            disabled={txStatus === 'minting'}
           >
-            Mint Token
+            {txStatus === 'minting' ? 'Minting...' : 'Mint Token'}
           </button>
+
+          {txStatus === 'success' && txHash && (
+            <p className="mt-4 text-sm text-blue-400">
+              ✅ Success:{" "}
+              <a
+                href={`https://testnet-coreum-explorer.coreum.dev/transactions/${txHash}`}
+                className="underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on Explorer
+              </a>
+            </p>
+          )}
+          {txStatus === 'error' && (
+            <p className="mt-4 text-red-400 text-sm">❌ Transaction failed</p>
+          )}
+
           <button
             className="mt-4 text-sm underline text-gray-400"
             onClick={disconnect}
