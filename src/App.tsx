@@ -1,5 +1,5 @@
 import React from "react";
-import { useChain } from "@cosmos-kit/react-lite";
+import { useChain } from "@cosmos-kit/react";
 
 export const App = () => {
   const { connect, isWalletConnected, address } = useChain("coreum-testnet");
